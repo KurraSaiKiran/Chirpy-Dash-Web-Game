@@ -167,6 +167,7 @@ class ChirpyDash {
     async handleStartGame() {
         const nickname = document.getElementById('nicknameInput').value.trim();
         const errorDiv = document.getElementById('nicknameError');
+        const startBtn = document.getElementById('startBtn');
         
         // Clear previous errors
         errorDiv.classList.add('hidden');
@@ -181,8 +182,40 @@ class ChirpyDash {
             return;
         }
         
+        // Show loading state
+        startBtn.disabled = true;
+        startBtn.textContent = 'Checking...';
+        
+        // Check if nickname is available
+        const isAvailable = await this.checkNicknameAvailable(nickname);
+        
+        if (!isAvailable) {
+            this.showError('Name already taken! Choose another.');
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Game';
+            return;
+        }
+        
         this.playerNickname = nickname;
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start Game';
         this.showSkinSelector();
+    }
+    
+    async checkNicknameAvailable(nickname) {
+        try {
+            const { data, error } = await this.supabase
+                .from('scores')
+                .select('nickname')
+                .ilike('nickname', nickname)
+                .limit(1);
+            
+            if (error) throw error;
+            return data.length === 0;
+        } catch (err) {
+            console.error('Error checking nickname:', err);
+            return true; // Allow if check fails
+        }
     }
     
     showError(message) {
@@ -497,14 +530,30 @@ class ChirpyDash {
     
     async saveScore(nickname, score) {
         try {
-            const { data, error } = await this.supabase
+            // Try to update existing user's score if higher
+            const { data: existingData } = await this.supabase
                 .from('scores')
-                .insert({ nickname, score });
+                .select('score')
+                .eq('nickname', nickname)
+                .single();
             
-            if (error) {
-                console.error('Error saving score:', error);
+            if (existingData) {
+                // Update only if new score is higher
+                if (score > existingData.score) {
+                    const { error } = await this.supabase
+                        .from('scores')
+                        .update({ score, created_at: new Date().toISOString() })
+                        .eq('nickname', nickname);
+                    
+                    if (error) console.error('Error updating score:', error);
+                }
             } else {
-                console.log('Score saved successfully:', data);
+                // Insert new user
+                const { error } = await this.supabase
+                    .from('scores')
+                    .insert({ nickname, score });
+                
+                if (error) console.error('Error inserting score:', error);
             }
         } catch (err) {
             console.error('Failed to save score:', err);
@@ -537,7 +586,7 @@ class ChirpyDash {
         }
         
         leaderboardList.innerHTML = scores.map((entry, index) => {
-            const isCurrentPlayer = entry.nickname === this.playerNickname && entry.score === this.score;
+            const isCurrentPlayer = entry.nickname === this.playerNickname;
             const timeAgo = this.getTimeAgo(entry.created_at);
             return `
                 <div class="leaderboard-entry ${isCurrentPlayer ? 'current-player' : ''}">
