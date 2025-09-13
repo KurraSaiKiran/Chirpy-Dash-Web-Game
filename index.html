@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐦 Chirpy Dash</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div id="gameContainer">
@@ -19,7 +20,10 @@
                         <div class="feature">🎨 4 Unique Bird Skins</div>
                         <div class="feature">🌩️ Dynamic Weather</div>
                     </div>
-                    <button id="startBtn" class="game-btn">Start Game</button>
+                    <div class="nickname-input">
+                        <input type="text" id="nicknameInput" placeholder="Enter your nickname" maxlength="20">
+                        <button id="startBtn" class="game-btn">Start Game</button>
+                    </div>
                     <div class="controls">
                         <p>🖱️ Click or Spacebar to Flap</p>
                         <p>📱 Tap Screen on Mobile</p>
@@ -30,6 +34,10 @@
                 <h2>Game Over!</h2>
                 <p>Score: <span id="finalScore">0</span></p>
                 <p>Best: <span id="bestScore">0</span></p>
+                <div id="leaderboard">
+                    <h3>🏆 Top Players</h3>
+                    <div id="leaderboardList">Loading...</div>
+                </div>
                 <button id="restartBtn">Play Again</button>
             </div>
             <div id="gameUI" class="hidden">

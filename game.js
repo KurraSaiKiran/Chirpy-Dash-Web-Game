@@ -33,6 +33,13 @@ class ChirpyDash {
         
         this.score = 0;
         this.bestScore = localStorage.getItem('chirpyBestScore') || 0;
+        this.playerNickname = '';
+        
+        // Initialize Supabase
+        this.supabase = supabase.createClient(
+            'https://iadtqegehglrdwomfdhv.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhZHRxZWdlaGdscmR3b21mZGh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3Njc5ODIsImV4cCI6MjA3MzM0Mzk4Mn0.tUGL8MF1_P8oaA5z2PL3HccJKrlfzCmmxM28Ju_gG8s'
+        );
         
         // Background elements
         this.clouds = [];
@@ -126,10 +133,10 @@ class ChirpyDash {
         
         // Start button
         const startBtn = document.getElementById('startBtn');
-        startBtn.addEventListener('click', () => this.showSkinSelector());
+        startBtn.addEventListener('click', () => this.handleStartGame());
         startBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            this.showSkinSelector();
+            this.handleStartGame();
         });
     }
     
@@ -155,6 +162,16 @@ class ChirpyDash {
                 });
             }
         }
+    }
+    
+    handleStartGame() {
+        const nickname = document.getElementById('nicknameInput').value.trim();
+        if (!nickname) {
+            alert('Please enter a nickname!');
+            return;
+        }
+        this.playerNickname = nickname;
+        this.showSkinSelector();
     }
     
     showSkinSelector() {
@@ -440,7 +457,7 @@ class ChirpyDash {
         }
     }
     
-    gameOver() {
+    async gameOver() {
         this.gameState = 'gameOver';
         
         // Update best score
@@ -449,10 +466,64 @@ class ChirpyDash {
             localStorage.setItem('chirpyBestScore', this.bestScore);
         }
         
+        // Save score to Supabase
+        await this.saveScore(this.playerNickname, this.score);
+        
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('bestScore').textContent = this.bestScore;
         document.getElementById('gameUI').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.remove('hidden');
+        
+        // Load and display leaderboard
+        await this.displayLeaderboard();
+    }
+    
+    async saveScore(nickname, score) {
+        try {
+            const { error } = await this.supabase
+                .from('scores')
+                .insert({ nickname, score });
+            
+            if (error) console.error('Error saving score:', error);
+        } catch (err) {
+            console.error('Failed to save score:', err);
+        }
+    }
+    
+    async getTopScores(limit = 10) {
+        try {
+            const { data, error } = await this.supabase
+                .from('scores')
+                .select('nickname, score, created_at')
+                .order('score', { ascending: false })
+                .limit(limit);
+            
+            if (error) throw error;
+            return data || [];
+        } catch (err) {
+            console.error('Failed to fetch scores:', err);
+            return [];
+        }
+    }
+    
+    async displayLeaderboard() {
+        const scores = await this.getTopScores(10);
+        const leaderboardList = document.getElementById('leaderboardList');
+        
+        if (scores.length === 0) {
+            leaderboardList.innerHTML = '<p>No scores yet!</p>';
+            return;
+        }
+        
+        leaderboardList.innerHTML = scores.map((entry, index) => {
+            const isCurrentPlayer = entry.nickname === this.playerNickname && entry.score === this.score;
+            return `
+                <div class="leaderboard-entry ${isCurrentPlayer ? 'current-player' : ''}">
+                    <span>${index + 1}. ${entry.nickname}</span>
+                    <span>${entry.score}</span>
+                </div>
+            `;
+        }).join('');
     }
     
     draw() {

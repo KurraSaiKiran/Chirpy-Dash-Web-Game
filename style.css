@@ -140,6 +140,63 @@ body {
     color: #95a5a6;
 }
 
+.nickname-input {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+#nicknameInput {
+    padding: 12px 20px;
+    font-size: 1.1em;
+    border: 2px solid #34495e;
+    border-radius: 25px;
+    background: rgba(52, 73, 94, 0.8);
+    color: white;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#nicknameInput:focus {
+    border-color: #3498db;
+    background: rgba(52, 152, 219, 0.2);
+}
+
+#nicknameInput::placeholder {
+    color: #bdc3c7;
+}
+
+#leaderboard {
+    background: rgba(52, 73, 94, 0.8);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    max-width: 400px;
+}
+
+#leaderboard h3 {
+    margin-bottom: 15px;
+    color: #f39c12;
+    text-align: center;
+}
+
+.leaderboard-entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 15px;
+    margin: 5px 0;
+    background: rgba(44, 62, 80, 0.6);
+    border-radius: 8px;
+    font-size: 0.9em;
+}
+
+.leaderboard-entry.current-player {
+    background: rgba(52, 152, 219, 0.3);
+    border: 1px solid #3498db;
+}
+
 #skinSelector {
     background: rgba(0, 0, 0, 0.9);
 }
