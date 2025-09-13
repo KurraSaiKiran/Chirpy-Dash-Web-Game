@@ -45,7 +45,6 @@ class ChirpyDash {
         
         this.initClouds();
         this.setupEventListeners();
-        this.showSkinSelector();
         this.gameLoop();
     }
     
