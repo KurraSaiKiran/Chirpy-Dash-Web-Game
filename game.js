@@ -560,13 +560,11 @@ class ChirpyDash {
         // Save score to Supabase
         await this.saveScore(this.playerNickname, this.score);
         
+        document.getElementById('playerNickname').textContent = this.playerNickname;
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('bestScore').textContent = this.bestScore;
         document.getElementById('gameUI').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.remove('hidden');
-        
-        // Load and display leaderboard
-        await this.displayLeaderboard();
     }
     
     async saveScore(nickname, score) {
@@ -618,37 +616,7 @@ class ChirpyDash {
         }
     }
     
-    async displayLeaderboard() {
-        const scores = await this.getTopScores(10);
-        const leaderboardList = document.getElementById('leaderboardList');
-        
-        if (scores.length === 0) {
-            leaderboardList.innerHTML = '<p>No scores yet!</p>';
-            return;
-        }
-        
-        leaderboardList.innerHTML = scores.map((entry, index) => {
-            const isCurrentPlayer = entry.nickname === this.playerNickname;
-            const timeAgo = this.getTimeAgo(entry.created_at);
-            return `
-                <div class="leaderboard-entry ${isCurrentPlayer ? 'current-player' : ''}">
-                    <span>${index + 1}. ${entry.nickname}</span>
-                    <span>${entry.score} <small>(${timeAgo})</small></span>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    getTimeAgo(timestamp) {
-        const now = new Date();
-        const time = new Date(timestamp);
-        const diffInMinutes = Math.floor((now - time) / (1000 * 60));
-        
-        if (diffInMinutes < 1) return 'now';
-        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-        if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-        return `${Math.floor(diffInMinutes / 1440)}d ago`;
-    }
+
     
     draw() {
         // Clear canvas
