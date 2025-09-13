@@ -197,6 +197,31 @@ body {
     border: 1px solid #3498db;
 }
 
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9em;
+    padding: 8px;
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    border-radius: 8px;
+    margin: 5px 0;
+}
+
+.error-message.hidden {
+    display: none;
+}
+
+#startBtn:disabled {
+    background: #7f8c8d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#startBtn:disabled:hover {
+    background: #7f8c8d;
+    transform: none;
+}
+
 #skinSelector {
     background: rgba(0, 0, 0, 0.9);
 }

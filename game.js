@@ -164,14 +164,64 @@ class ChirpyDash {
         }
     }
     
-    handleStartGame() {
+    async handleStartGame() {
         const nickname = document.getElementById('nicknameInput').value.trim();
+        const errorDiv = document.getElementById('nicknameError');
+        const startBtn = document.getElementById('startBtn');
+        
+        // Clear previous errors
+        errorDiv.classList.add('hidden');
+        
         if (!nickname) {
-            alert('Please enter a nickname!');
+            this.showError('Please enter a nickname!');
             return;
         }
+        
+        if (nickname.length < 2) {
+            this.showError('Nickname must be at least 2 characters!');
+            return;
+        }
+        
+        // Disable button and show loading
+        startBtn.disabled = true;
+        startBtn.textContent = 'Checking...';
+        
+        // Check if nickname is unique
+        const isUnique = await this.checkNicknameUnique(nickname);
+        
+        if (!isUnique) {
+            this.showError('Name already taken! Choose another.');
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Game';
+            return;
+        }
+        
         this.playerNickname = nickname;
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start Game';
         this.showSkinSelector();
+    }
+    
+    showError(message) {
+        const errorDiv = document.getElementById('nicknameError');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
+    
+    async checkNicknameUnique(nickname) {
+        try {
+            const { data, error } = await this.supabase
+                .from('scores')
+                .select('nickname')
+                .ilike('nickname', nickname)
+                .limit(1);
+            
+            if (error) throw error;
+            return data.length === 0;
+        } catch (err) {
+            console.error('Error checking nickname:', err);
+            return true; // Allow if check fails
+        }
     }
     
     showSkinSelector() {
@@ -482,11 +532,42 @@ class ChirpyDash {
         try {
             const { error } = await this.supabase
                 .from('scores')
-                .insert({ nickname, score });
+                .upsert({ 
+                    nickname, 
+                    score 
+                }, {
+                    onConflict: 'nickname',
+                    ignoreDuplicates: false
+                });
             
-            if (error) console.error('Error saving score:', error);
+            if (error) {
+                console.error('Error saving score:', error);
+                // If nickname conflict, update with higher score only
+                if (error.code === '23505') {
+                    await this.updateScoreIfHigher(nickname, score);
+                }
+            }
         } catch (err) {
             console.error('Failed to save score:', err);
+        }
+    }
+    
+    async updateScoreIfHigher(nickname, newScore) {
+        try {
+            const { data: currentData } = await this.supabase
+                .from('scores')
+                .select('score')
+                .eq('nickname', nickname)
+                .single();
+            
+            if (currentData && newScore > currentData.score) {
+                await this.supabase
+                    .from('scores')
+                    .update({ score: newScore, created_at: new Date().toISOString() })
+                    .eq('nickname', nickname);
+            }
+        } catch (err) {
+            console.error('Failed to update score:', err);
         }
     }
     
