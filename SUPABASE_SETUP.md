@@ -61,4 +61,5 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 - 🗑️ **Clear session** option for different names
 - 🌐 **Browser session persistence** (clears on window close)
 - 🔒 **Unique nicknames** enforced (one per player)
-- 🔄 **Score updates** after every game (latest score saved)
+- 🏆 **Best scores only** - updates only when score is higher
+- 📈 **Leaderboard shows** each nickname once with their best score

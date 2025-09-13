@@ -571,18 +571,30 @@ class ChirpyDash {
     
     async saveScore(nickname, score) {
         try {
-            // Use upsert to handle both insert and update
-            const { data, error } = await this.supabase
+            // Check if user exists and get current score
+            const { data: existingUser } = await this.supabase
                 .from('scores')
-                .upsert(
-                    { nickname, score, created_at: new Date().toISOString() },
-                    { onConflict: 'nickname' }
-                );
+                .select('score')
+                .eq('nickname', nickname)
+                .single();
             
-            if (error) {
-                console.error('Error saving score:', error);
+            if (existingUser) {
+                // Update only if new score is higher
+                if (score > existingUser.score) {
+                    const { error } = await this.supabase
+                        .from('scores')
+                        .update({ score, created_at: new Date().toISOString() })
+                        .eq('nickname', nickname);
+                    
+                    if (error) console.error('Error updating score:', error);
+                }
             } else {
-                console.log('Score saved successfully:', data);
+                // Insert new user
+                const { error } = await this.supabase
+                    .from('scores')
+                    .insert({ nickname, score });
+                
+                if (error) console.error('Error inserting score:', error);
             }
         } catch (err) {
             console.error('Failed to save score:', err);

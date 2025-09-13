@@ -9,6 +9,12 @@ CREATE TABLE scores (
 -- Create unique index for case-insensitive nickname checking
 CREATE UNIQUE INDEX idx_nickname_unique ON scores (LOWER(nickname));
 
+-- Policy to allow anonymous users to update scores
+CREATE POLICY "Allow anonymous updates" ON scores
+    FOR UPDATE TO anon
+    USING (true)
+    WITH CHECK (true);
+
 -- Enable Row Level Security
 ALTER TABLE scores ENABLE ROW LEVEL SECURITY;
 
@@ -25,6 +31,7 @@ CREATE POLICY "Allow anonymous reads" ON scores
 -- Create index for better performance on leaderboard queries
 CREATE INDEX idx_scores_score_desc ON scores (score DESC, created_at DESC);
 
--- Add unique constraint if table already exists
+-- Add unique constraint and update policy if table already exists
 -- ALTER TABLE scores ADD CONSTRAINT unique_nickname UNIQUE (nickname);
 -- CREATE UNIQUE INDEX IF NOT EXISTS idx_nickname_unique ON scores (LOWER(nickname));
+-- CREATE POLICY IF NOT EXISTS "Allow anonymous updates" ON scores FOR UPDATE TO anon USING (true) WITH CHECK (true);
