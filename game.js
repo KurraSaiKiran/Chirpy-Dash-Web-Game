@@ -114,11 +114,14 @@ class ChirpyDash {
         });
         
         document.getElementById('playBtn').addEventListener('click', () => this.hideSkinSelector());
+        
+        // Start button
+        document.getElementById('startBtn').addEventListener('click', () => this.showSkinSelector());
     }
     
     handleInput() {
         if (this.gameState === 'start') {
-            this.showSkinSelector();
+            return;
         } else if (this.gameState === 'playing') {
             this.playFlapSound();
             this.bird.velocity = this.bird.jumpPower;
