@@ -118,7 +118,12 @@ body {
     letter-spacing: 1px;
 }
 
-.game-btn:hover {
+.game-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.game-btn:hover, .game-btn:active {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(231, 76, 60, 0.6);
     background: linear-gradient(45deg, #c0392b, #e67e22);
@@ -177,9 +182,11 @@ body {
     cursor: pointer;
     margin-top: 20px;
     transition: all 0.3s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-#playBtn:hover {
+#playBtn:hover, #playBtn:active {
     background: #2ecc71;
     transform: scale(1.05);
 }
@@ -227,9 +234,11 @@ body {
     margin-top: 20px;
     transition: all 0.3s ease;
     pointer-events: all;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-#restartBtn:hover {
+#restartBtn:hover, #restartBtn:active {
     background: #2980b9;
     transform: scale(1.05);
 }

@@ -106,17 +106,32 @@ class ChirpyDash {
         });
         
         // Restart button
-        document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+        const restartBtn = document.getElementById('restartBtn');
+        restartBtn.addEventListener('click', () => this.restart());
+        restartBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.restart();
+        });
         
         // Skin selection
         document.querySelectorAll('.skin').forEach(skin => {
             skin.addEventListener('click', () => this.selectSkin(skin.dataset.skin));
         });
         
-        document.getElementById('playBtn').addEventListener('click', () => this.hideSkinSelector());
+        const playBtn = document.getElementById('playBtn');
+        playBtn.addEventListener('click', () => this.hideSkinSelector());
+        playBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.hideSkinSelector();
+        });
         
         // Start button
-        document.getElementById('startBtn').addEventListener('click', () => this.showSkinSelector());
+        const startBtn = document.getElementById('startBtn');
+        startBtn.addEventListener('click', () => this.showSkinSelector());
+        startBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.showSkinSelector();
+        });
     }
     
     handleInput() {
