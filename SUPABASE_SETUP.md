@@ -45,15 +45,13 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 ✅ **Anonymous user policies** for safe public access
 ✅ **Input validation** on frontend
 ✅ **Error handling** for network issues
-✅ **Unique nickname constraint** at database level
-✅ **Case-insensitive uniqueness** check
 
 ## 4. Features Implemented
 
-- 🎮 **Unique nickname system** with validation
+- 🎮 **Simple nickname system** (unlimited users)
 - 💾 **Automatic score saving** to Supabase
 - 🏆 **Real-time leaderboard** display
 - 📱 **Mobile-friendly** interface
 - ⚡ **Fast performance** with indexed queries
-- 🔒 **Duplicate prevention** with frontend + backend checks
-- 📊 **Score updates** for existing players (higher scores only)
+- 🕒 **Timestamp tracking** for recent scores
+- 👥 **Multiple entries per nickname** allowed

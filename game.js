@@ -167,7 +167,6 @@ class ChirpyDash {
     async handleStartGame() {
         const nickname = document.getElementById('nicknameInput').value.trim();
         const errorDiv = document.getElementById('nicknameError');
-        const startBtn = document.getElementById('startBtn');
         
         // Clear previous errors
         errorDiv.classList.add('hidden');
@@ -182,23 +181,7 @@ class ChirpyDash {
             return;
         }
         
-        // Disable button and show loading
-        startBtn.disabled = true;
-        startBtn.textContent = 'Checking...';
-        
-        // Check if nickname is unique
-        const isUnique = await this.checkNicknameUnique(nickname);
-        
-        if (!isUnique) {
-            this.showError('Name already taken! Choose another.');
-            startBtn.disabled = false;
-            startBtn.textContent = 'Start Game';
-            return;
-        }
-        
         this.playerNickname = nickname;
-        startBtn.disabled = false;
-        startBtn.textContent = 'Start Game';
         this.showSkinSelector();
     }
     
@@ -206,22 +189,6 @@ class ChirpyDash {
         const errorDiv = document.getElementById('nicknameError');
         errorDiv.textContent = message;
         errorDiv.classList.remove('hidden');
-    }
-    
-    async checkNicknameUnique(nickname) {
-        try {
-            const { data, error } = await this.supabase
-                .from('scores')
-                .select('nickname')
-                .ilike('nickname', nickname)
-                .limit(1);
-            
-            if (error) throw error;
-            return data.length === 0;
-        } catch (err) {
-            console.error('Error checking nickname:', err);
-            return true; // Allow if check fails
-        }
     }
     
     showSkinSelector() {
@@ -530,44 +497,17 @@ class ChirpyDash {
     
     async saveScore(nickname, score) {
         try {
-            const { error } = await this.supabase
+            const { data, error } = await this.supabase
                 .from('scores')
-                .upsert({ 
-                    nickname, 
-                    score 
-                }, {
-                    onConflict: 'nickname',
-                    ignoreDuplicates: false
-                });
+                .insert({ nickname, score });
             
             if (error) {
                 console.error('Error saving score:', error);
-                // If nickname conflict, update with higher score only
-                if (error.code === '23505') {
-                    await this.updateScoreIfHigher(nickname, score);
-                }
+            } else {
+                console.log('Score saved successfully:', data);
             }
         } catch (err) {
             console.error('Failed to save score:', err);
-        }
-    }
-    
-    async updateScoreIfHigher(nickname, newScore) {
-        try {
-            const { data: currentData } = await this.supabase
-                .from('scores')
-                .select('score')
-                .eq('nickname', nickname)
-                .single();
-            
-            if (currentData && newScore > currentData.score) {
-                await this.supabase
-                    .from('scores')
-                    .update({ score: newScore, created_at: new Date().toISOString() })
-                    .eq('nickname', nickname);
-            }
-        } catch (err) {
-            console.error('Failed to update score:', err);
         }
     }
     
@@ -598,13 +538,25 @@ class ChirpyDash {
         
         leaderboardList.innerHTML = scores.map((entry, index) => {
             const isCurrentPlayer = entry.nickname === this.playerNickname && entry.score === this.score;
+            const timeAgo = this.getTimeAgo(entry.created_at);
             return `
                 <div class="leaderboard-entry ${isCurrentPlayer ? 'current-player' : ''}">
                     <span>${index + 1}. ${entry.nickname}</span>
-                    <span>${entry.score}</span>
+                    <span>${entry.score} <small>(${timeAgo})</small></span>
                 </div>
             `;
         }).join('');
+    }
+    
+    getTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+        
+        if (diffInMinutes < 1) return 'now';
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+        return `${Math.floor(diffInMinutes / 1440)}d ago`;
     }
     
     draw() {

@@ -1,13 +1,10 @@
--- Create scores table
+-- Create scores table (allows multiple entries per nickname)
 CREATE TABLE scores (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    nickname TEXT NOT NULL UNIQUE,
+    nickname TEXT NOT NULL,
     score INTEGER NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Create unique index on nickname (case-insensitive)
-CREATE UNIQUE INDEX idx_nickname_unique ON scores (LOWER(nickname));
 
 -- Enable Row Level Security
 ALTER TABLE scores ENABLE ROW LEVEL SECURITY;
@@ -25,6 +22,7 @@ CREATE POLICY "Allow anonymous reads" ON scores
 -- Create index for better performance on leaderboard queries
 CREATE INDEX idx_scores_score_desc ON scores (score DESC, created_at DESC);
 
--- Update existing table if already created
--- ALTER TABLE scores ADD CONSTRAINT unique_nickname UNIQUE (nickname);
--- CREATE UNIQUE INDEX IF NOT EXISTS idx_nickname_unique ON scores (LOWER(nickname));
+-- Remove unique constraints if they exist
+-- DROP INDEX IF EXISTS idx_nickname_unique;
+-- ALTER TABLE scores DROP CONSTRAINT IF EXISTS unique_nickname;
+-- ALTER TABLE scores DROP CONSTRAINT IF EXISTS scores_nickname_key;
