@@ -547,20 +547,18 @@ class ChirpyDash {
             // Check if nickname already exists
             const { data: existingUser } = await this.supabase
                 .from('scores')
-                .select('nickname, score')
+                .select('nickname')
                 .ilike('nickname', nickname)
                 .single();
             
             if (existingUser) {
-                // User exists, update only if new score is higher
-                if (score > existingUser.score) {
-                    const { error } = await this.supabase
-                        .from('scores')
-                        .update({ score, created_at: new Date().toISOString() })
-                        .ilike('nickname', nickname);
-                    
-                    if (error) console.error('Error updating score:', error);
-                }
+                // User exists, always update score
+                const { error } = await this.supabase
+                    .from('scores')
+                    .update({ score, created_at: new Date().toISOString() })
+                    .ilike('nickname', nickname);
+                
+                if (error) console.error('Error updating score:', error);
             } else {
                 // New user, insert record
                 const { error } = await this.supabase
