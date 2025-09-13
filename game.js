@@ -80,6 +80,18 @@ class ChirpyDash {
         document.getElementById('nicknameError').classList.add('hidden');
     }
     
+    backToWelcome() {
+        document.getElementById('skinSelector').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+    }
+    
+    backToMainMenu() {
+        this.gameState = 'start';
+        document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+        document.getElementById('gameUI').classList.add('hidden');
+    }
+    
     initAudio() {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -170,6 +182,21 @@ class ChirpyDash {
         clearBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             this.clearSession();
+        });
+        
+        // Back buttons
+        const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
+        backToWelcomeBtn.addEventListener('click', () => this.backToWelcome());
+        backToWelcomeBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.backToWelcome();
+        });
+        
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        backToMenuBtn.addEventListener('click', () => this.backToMainMenu());
+        backToMenuBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.backToMainMenu();
         });
     }
     
@@ -544,28 +571,18 @@ class ChirpyDash {
     
     async saveScore(nickname, score) {
         try {
-            // Check if nickname already exists
-            const { data: existingUser } = await this.supabase
+            // Use upsert to handle both insert and update
+            const { data, error } = await this.supabase
                 .from('scores')
-                .select('nickname')
-                .ilike('nickname', nickname)
-                .single();
+                .upsert(
+                    { nickname, score, created_at: new Date().toISOString() },
+                    { onConflict: 'nickname' }
+                );
             
-            if (existingUser) {
-                // User exists, always update score
-                const { error } = await this.supabase
-                    .from('scores')
-                    .update({ score, created_at: new Date().toISOString() })
-                    .ilike('nickname', nickname);
-                
-                if (error) console.error('Error updating score:', error);
+            if (error) {
+                console.error('Error saving score:', error);
             } else {
-                // New user, insert record
-                const { error } = await this.supabase
-                    .from('scores')
-                    .insert({ nickname, score });
-                
-                if (error) console.error('Error inserting score:', error);
+                console.log('Score saved successfully:', data);
             }
         } catch (err) {
             console.error('Failed to save score:', err);
@@ -578,6 +595,7 @@ class ChirpyDash {
                 .from('scores')
                 .select('nickname, score, created_at')
                 .order('score', { ascending: false })
+                .order('created_at', { ascending: false })
                 .limit(limit);
             
             if (error) throw error;

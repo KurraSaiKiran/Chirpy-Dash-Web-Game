@@ -241,6 +241,25 @@ body {
     transform: scale(1.02);
 }
 
+.back-btn {
+    background: #95a5a6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.back-btn:hover {
+    background: #7f8c8d;
+    transform: scale(1.02);
+}
+
 #skinSelector {
     background: rgba(0, 0, 0, 0.9);
 }
