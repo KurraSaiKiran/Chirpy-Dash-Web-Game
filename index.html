@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐦 Chirpy Dash</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui">
+            <div id="startScreen" class="screen">
+                <h1>🐦 Chirpy Dash</h1>
+                <p>Tap to Start</p>
+            </div>
+            <div id="gameOverScreen" class="screen hidden">
+                <h2>Game Over!</h2>
+                <p>Score: <span id="finalScore">0</span></p>
+                <p>Best: <span id="bestScore">0</span></p>
+                <button id="restartBtn">Play Again</button>
+            </div>
+            <div id="gameUI" class="hidden">
+                <div id="score">0</div>
+                <div id="powerupUI"></div>
+            </div>
+            <div id="skinSelector" class="screen hidden">
+                <h2>Choose Your Chirpy</h2>
+                <div id="skins">
+                    <div class="skin active" data-skin="classic">🐦 Classic</div>
+                    <div class="skin" data-skin="thunder">⚡ Thunder</div>
+                    <div class="skin" data-skin="rainbow">🌈 Rainbow</div>
+                    <div class="skin" data-skin="ninja">🥷 Ninja</div>
+                </div>
+                <button id="playBtn">Play Game</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
