@@ -33,7 +33,7 @@ class ChirpyDash {
         
         this.score = 0;
         this.bestScore = localStorage.getItem('chirpyBestScore') || 0;
-        this.playerNickname = '';
+        this.playerNickname = sessionStorage.getItem('chirpyNickname') || '';
         
         // Initialize Supabase
         this.supabase = supabase.createClient(
@@ -52,7 +52,33 @@ class ChirpyDash {
         
         this.initClouds();
         this.setupEventListeners();
+        this.checkExistingSession();
         this.gameLoop();
+    }
+    
+    checkExistingSession() {
+        if (this.playerNickname) {
+            // Auto-fill nickname input
+            document.getElementById('nicknameInput').value = this.playerNickname;
+            // Show clear session button
+            document.getElementById('clearSessionBtn').classList.remove('hidden');
+            // Show welcome screen with existing nickname
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+    }
+    
+    clearSession() {
+        // Clear session storage
+        sessionStorage.removeItem('chirpyNickname');
+        this.playerNickname = '';
+        
+        // Clear input and hide clear button
+        document.getElementById('nicknameInput').value = '';
+        document.getElementById('clearSessionBtn').classList.add('hidden');
+        
+        // Clear any errors
+        document.getElementById('nicknameError').classList.add('hidden');
+    }
     }
     
     initAudio() {
@@ -138,6 +164,14 @@ class ChirpyDash {
             e.preventDefault();
             this.handleStartGame();
         });
+        
+        // Clear session button
+        const clearBtn = document.getElementById('clearSessionBtn');
+        clearBtn.addEventListener('click', () => this.clearSession());
+        clearBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.clearSession();
+        });
     }
     
     handleInput() {
@@ -167,7 +201,6 @@ class ChirpyDash {
     async handleStartGame() {
         const nickname = document.getElementById('nicknameInput').value.trim();
         const errorDiv = document.getElementById('nicknameError');
-        const startBtn = document.getElementById('startBtn');
         
         // Clear previous errors
         errorDiv.classList.add('hidden');
@@ -182,41 +215,14 @@ class ChirpyDash {
             return;
         }
         
-        // Show loading state
-        startBtn.disabled = true;
-        startBtn.textContent = 'Checking...';
-        
-        // Check if nickname is available
-        const isAvailable = await this.checkNicknameAvailable(nickname);
-        
-        if (!isAvailable) {
-            this.showError('Name already taken! Choose another.');
-            startBtn.disabled = false;
-            startBtn.textContent = 'Start Game';
-            return;
-        }
-        
+        // Store nickname in session
         this.playerNickname = nickname;
-        startBtn.disabled = false;
-        startBtn.textContent = 'Start Game';
+        sessionStorage.setItem('chirpyNickname', nickname);
+        
         this.showSkinSelector();
     }
     
-    async checkNicknameAvailable(nickname) {
-        try {
-            const { data, error } = await this.supabase
-                .from('scores')
-                .select('nickname')
-                .ilike('nickname', nickname)
-                .limit(1);
-            
-            if (error) throw error;
-            return data.length === 0;
-        } catch (err) {
-            console.error('Error checking nickname:', err);
-            return true; // Allow if check fails
-        }
-    }
+
     
     showError(message) {
         const errorDiv = document.getElementById('nicknameError');
@@ -261,7 +267,16 @@ class ChirpyDash {
     restart() {
         this.gameState = 'start';
         document.getElementById('gameOverScreen').classList.add('hidden');
-        document.getElementById('startScreen').classList.remove('hidden');
+        
+        // Check if we have a session nickname
+        if (this.playerNickname) {
+            // Skip welcome screen, go directly to skin selector
+            this.showSkinSelector();
+        } else {
+            // Show welcome screen for new nickname
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+        
         document.getElementById('gameUI').classList.add('hidden');
     }
     
@@ -530,30 +545,12 @@ class ChirpyDash {
     
     async saveScore(nickname, score) {
         try {
-            // Try to update existing user's score if higher
-            const { data: existingData } = await this.supabase
+            const { error } = await this.supabase
                 .from('scores')
-                .select('score')
-                .eq('nickname', nickname)
-                .single();
+                .insert({ nickname, score });
             
-            if (existingData) {
-                // Update only if new score is higher
-                if (score > existingData.score) {
-                    const { error } = await this.supabase
-                        .from('scores')
-                        .update({ score, created_at: new Date().toISOString() })
-                        .eq('nickname', nickname);
-                    
-                    if (error) console.error('Error updating score:', error);
-                }
-            } else {
-                // Insert new user
-                const { error } = await this.supabase
-                    .from('scores')
-                    .insert({ nickname, score });
-                
-                if (error) console.error('Error inserting score:', error);
+            if (error) {
+                console.error('Error saving score:', error);
             }
         } catch (err) {
             console.error('Failed to save score:', err);
