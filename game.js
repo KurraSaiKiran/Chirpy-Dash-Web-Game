@@ -79,7 +79,6 @@ class ChirpyDash {
         // Clear any errors
         document.getElementById('nicknameError').classList.add('hidden');
     }
-    }
     
     initAudio() {
         try {
